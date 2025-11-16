@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PureSoft ChatBot</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+  <style>
+    :root {
+      --primary: #010348;
+      --bg: #0f1a1f;
+      --chat-bg: #111b21;
+      --sent: #005c4b;
+      --received: #202c33;
+      --text: #e9edef;
+      --input: #2a3942;
+      --accent: #000481;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .header {
+      background: var(--primary);
+      padding: 1rem;
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .header img {
+      height: 40px;
+      width: auto;
+      display: block;
+    }
+    .chat-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+    .message {
+      max-width: 75%;
+      padding: 0.6rem 1rem;
+      border-radius: 12px;
+      line-height: 1.4;
+      font-size: 0.95rem;
+      word-wrap: break-word;
+      position: relative;
+    }
+    .sent {
+      align-self: flex-end;
+      background: var(--accent);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+    .received {
+      align-self: flex-start;
+      background: var(--received);
+      color: var(--text);
+      border-bottom-left-radius: 4px;
+    }
+    .city-tag {
+      font-size: 0.75rem;
+      opacity: 0.7;
+      margin-top: 4px;
+      font-style: italic;
+    }
+    .input-area {
+      display: flex;
+      flex-direction: column;
+      padding: 0.8rem;
+      background: var(--chat-bg);
+      gap: 0.5rem;
+      border-top: 1px solid #334;
+    }
+    .input-row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    #userInput {
+      flex: 1;
+      padding: 0.8rem 1rem;
+      border: none;
+      border-radius: 25px;
+      background: var(--input);
+      color: white;
+      font-size: 1rem;
+      outline: none;
+    }
+    .icon-btn {
+      background: #010348;
+      color: #8696a0;
+      border: none;
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.2s;
+    }
+    .icon-btn:hover { background: var(--accent); color: white; }
+    #sendBtn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.2s;
+    }
+    #sendBtn.has-image { background: var(--accent); }
+    #sendBtn:hover { background: #0006a7; }
+    .typing {
+      font-style: italic;
+      color: #8696a0;
+      align-self: flex-start;
+      background: var(--received);
+      padding: 0.6rem 1rem;
+      border-radius: 12px;
+      border-bottom-left-radius: 4px;
+    }
+    .chat-image {
+      max-width: 180px;
+      max-height: 180px;
+      border-radius: 8px;
+      margin-top: 6px;
+      display: block;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    .image-preview {
+      display: flex;
+      justify-content: flex-end;
+      padding: 0 0.5rem;
+    }
+    .preview-img {
+      max-width: 80px;
+      max-height: 80px;
+      border-radius: 8px;
+      border: 2px solid var(--accent);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    .remove-preview {
+      background: #c00;
+      color: white;
+      border: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      font-size: 0.7rem;
+      cursor: pointer;
+      margin-right: -10px;
+      margin-top: -10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #334; border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <img src="../web/Logo.jpg" alt="PURESOFT Logo">
+  </div>
+
+  <div class="chat-container" id="chatBox">
+  </div>
+
+  <div class="input-area">
+    <div class="input-row">
+      <label for="imageInput" class="icon-btn">
+        <i class="fas fa-camera"></i>
+      </label>
+      <input type="file" id="imageInput" accept="image/*" style="display: none;" />
+      
+      <input type="text" id="userInput" placeholder="اكتب رسالتك هنا..." autocomplete="off" />
+      
+      <button id="sendBtn"><i class="fas fa-paper-plane"></i></button>
+    </div>
+
+    <div class="image-preview" id="imagePreview" style="display: none;">
+      <div style="position: relative;">
+        <img id="previewImg" class="preview-img" />
+        <button class="remove-preview" id="removePreview">X</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const chatBox = document.getElementById('chatBox');
+    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const imageInput = document.getElementById('imageInput');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+    const removePreviewBtn = document.getElementById('removePreview');
+
+    const API_URL = "https://web-production-8c457.up.railway.app/api/chat";
+
+    let hasWelcomed = false;
+    let selectedImage = null;
+    let selectedFile = null;
+
+    imageInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      selectedFile = file;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        selectedImage = ev.target.result;
+        previewImg.src = selectedImage;
+        imagePreview.style.display = 'flex';
+        sendBtn.classList.add('has-image');
+      };
+      reader.readAsDataURL(file);
+    });
+
+    removePreviewBtn.addEventListener('click', () => {
+      imageInput.value = '';
+      selectedImage = null;
+      selectedFile = null;
+      imagePreview.style.display = 'none';
+      sendBtn.classList.remove('has-image');
+    });
+
+    // === إضافة رسالة ===
+    function addMessage(text, type, imageSrc = null) {
+      const msg = document.createElement('div');
+      msg.className = `message ${type}`;
+      
+      if (text) {
+        const textNode = document.createElement('div');
+        textNode.textContent = text;
+        msg.appendChild(textNode);
+      }
+
+      if (imageSrc) {
+        const img = document.createElement('img');
+        img.src = imageSrc;
+        img.className = 'chat-image';
+        img.alt = 'صورة المستخدم';
+        msg.appendChild(img);
+      }
+
+      chatBox.appendChild(msg);
+      chatBox.scrollTop = chatBox.scrollHeight;
+      return msg;
+    }
+
+    function showTyping() {
+      const typing = document.createElement('div');
+      typing.className = 'typing';
+      typing.id = 'typing';
+      typing.textContent = 'جاري الكتابة...';
+      chatBox.appendChild(typing);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function removeTyping() {
+      const typing = document.getElementById('typing');
+      if (typing) typing.remove();
+    }
+
+    async function sendMessage() {
+      const message = userInput.value.trim();
+      const file = selectedFile;
+
+      if (!message && !file) return;
+
+      addMessage(message, 'sent', selectedImage);
+      userInput.value = '';
+
+      imagePreview.style.display = 'none';
+      sendBtn.classList.remove('has-image');
+
+      showTyping();
+
+      const formData = new FormData();
+      if (message) formData.append('message', message);
+      if (file) formData.append('image', file);
+
+      try {
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await res.json();
+        removeTyping();
+
+        if (data.reply) {
+          const replyMsg = addMessage(data.reply, 'received');
+
+          if (data.city && !hasWelcomed) {
+            const cityTag = document.createElement('div');
+            cityTag.className = 'city-tag';
+            cityTag.textContent = `موقعك: ${data.city}`;
+            replyMsg.appendChild(cityTag);
+
+            hasWelcomed = true;
+            setTimeout(() => {
+              addMessage(`أهلًا! أنا عارف إنك في ${data.city}، اسألني عن الطقس أو أي حاجة`, 'received');
+            }, 800);
+          }
+        } else {
+          addMessage("عذرًا، فيه مشكلة. حاول تاني!", 'received');
+        }
+      } catch (err) {
+        removeTyping();
+        addMessage("مشكلة في الاتصال. تأكد من الإنترنت!", 'received');
+      }
+
+      selectedImage = null;
+      selectedFile = null;
+      imageInput.value = '';
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+    userInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') sendMessage();
+    });
+
+    userInput.focus();
+  </script>
+
+</body>
+</html>
